@@ -22,27 +22,42 @@
 
 <h2>채팅방</h2>
 <div id="messages"></div>
-<input type="text" id="message-input" placeholder="메시지를 입력하세요" />
+<input type="text" id="message-input" placeholder="메시지를 입력하세요" onkeyup="if (window.event.keyCode === 13) { sendMessage() }" />
 <button onclick="sendMessage()">보내기</button>
 
 <script type="text/javascript">
     var stompClient = null;
     var roomId = null;
 
+    document.getElementById("room-id").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            // 엔터키가 눌렸을 때 실행할 메서드
+            joinRoom();
+        }
+    });
+
+    document.getElementById("message-input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            // 엔터키가 눌렸을 때 실행할 메서드
+            sendMessage();
+        }
+    });
+
     function joinRoom() {
         roomId = document.getElementById("room-id").value;
         if (roomId) {
-            var socket = new SockJS("http://localhost:8080/chat");
+            var socket = new SockJS("/chat");
             stompClient = Stomp.over(socket);
 
             stompClient.connect({}, function (frame) {
                 console.log("Connected: " + frame);
+                showMessage(`${roomId}번 채팅방에 입장하였습니다.`);
                 stompClient.subscribe("/topic/messages/" + roomId, function (message) {
                     showMessage(message.body);
                 });
             });
         } else {
-            alert("Please enter a room ID.");
+            alert("채팅방 ID를 입력하세요.");
         }
     }
 
@@ -59,6 +74,7 @@
     function showMessage(message) {
         var messagesDiv = document.getElementById("messages");
         var messageElement = document.createElement("div");
+        messageElement.style.color = "red";
         messageElement.appendChild(document.createTextNode(message));
         messagesDiv.appendChild(messageElement);
     }
