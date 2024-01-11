@@ -17,6 +17,9 @@
 </head>
 <body>
 <h2>채팅방에 입장하세요</h2>
+<input type="text" id="user-id" placeholder="사용자 ID를 입력하세요" />
+<button onclick="saveUserId()">저장</button>
+<br>
 <input type="text" id="room-id" placeholder="채팅방 ID를 입력하세요" />
 <button onclick="joinRoom()">접속</button>
 
@@ -29,6 +32,12 @@
     var stompClient = null;
     var roomId = null;
 
+    document.getElementById("user-id").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            saveUserId();
+        }
+    });
+
     document.getElementById("room-id").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             joinRoom();
@@ -40,6 +49,16 @@
             sendMessage();
         }
     });
+
+    function saveUserId() {
+        var userId = document.getElementById("user-id").value;
+        if (userId) {
+            sessionStorage.setItem("userId", userId);
+            document.getElementById("room-id").focus();
+        } else {
+            alert("사용자 ID를 입력하세요.");
+        }
+    }
 
     function joinRoom() {
         roomId = document.getElementById("room-id").value;
@@ -63,7 +82,8 @@
     }
 
     function sendMessage() {
-        var message = document.getElementById("message-input").value;
+        var message = "[" + sessionStorage.getItem("userId") + "] " +
+            document.getElementById("message-input").value;
         if (stompClient && roomId) {
             stompClient.send("/app/chat/" + roomId, {}, message);
             document.getElementById("message-input").value = "";
