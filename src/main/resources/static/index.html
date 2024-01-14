@@ -6,12 +6,32 @@
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
     <style>
         #messages {
-            height: 300px; /* 고정된 높이 */
-            overflow-y: auto; /* 스크롤바 추가 */
-            background-color: #f0f0f0; /* 배경색 */
-            border: 1px solid #ddd; /* 테두리 */
-            padding: 10px; /* 내부 여백 */
-            margin-bottom: 10px; /* 아래쪽 여백 */
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            max-width: 50%;
+        }
+        .message-info {
+            font-size: 0.8em;
+            color: gray;
+            margin-bottom: 5px;
+        }
+        .own-message {
+            background-color: #d1e7dd;
+            margin-left: auto;
+            text-align: right;
+        }
+        .other-message {
+            background-color: #f8d7da;
+            text-align: left;
         }
     </style>
 </head>
@@ -31,6 +51,7 @@
 <script type="text/javascript">
     var stompClient = null;
     var roomId = null;
+    var userId = sessionStorage.getItem("userId");
 
     document.getElementById("user-id").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
@@ -51,7 +72,7 @@
     });
 
     function saveUserId() {
-        var userId = document.getElementById("user-id").value;
+        userId = document.getElementById("user-id").value;
         if (userId) {
             sessionStorage.setItem("userId", userId);
             document.getElementById("room-id").focus();
@@ -61,19 +82,29 @@
     }
 
     function joinRoom() {
+        clearMessages();
         roomId = document.getElementById("room-id").value;
         if (roomId) {
+            fetch(`/chats/${roomId}`)
+                .then(response => response.json())
+                .then(messages => {
+                    displayEnterMessage(`${roomId}번 채팅방에 입장하였습니다.`, "red");
+                    messages.forEach(message => {
+                        displayMessage(message, message.sender === userId);
+                    });
+                    scrollToBottom();
+                });
+
             var socket = new SockJS("/chat");
             stompClient = Stomp.over(socket);
 
             stompClient.connect({}, function (frame) {
                 console.log("Connected: " + frame);
-
                 stompClient.subscribe("/topic/messages/" + roomId, function (message) {
-                    showMessage(message.body, "black");
+                    var chatMessage = JSON.parse(message.body);
+                    displayMessage(chatMessage, chatMessage.sender === userId);
+                    scrollToBottom();
                 });
-
-                showMessage(`${roomId}번 채팅방에 입장하였습니다.`, "red");
                 document.getElementById("message-input").focus();
             });
         } else {
@@ -82,22 +113,47 @@
     }
 
     function sendMessage() {
-        var message = "[" + sessionStorage.getItem("userId") + "] " +
-            document.getElementById("message-input").value;
+        var messageContent = document.getElementById("message-input").value;
+        var chatMessage = {
+            roomId: roomId,
+            sender: sessionStorage.getItem("userId"),
+            content: messageContent
+        };
+
         if (stompClient && roomId) {
-            stompClient.send("/app/chat/" + roomId, {}, message);
+            stompClient.send("/app/chat/" + roomId, {}, JSON.stringify(chatMessage));
             document.getElementById("message-input").value = "";
         } else {
             alert("You are not connected to a chat room.");
         }
     }
 
-    function showMessage(message, color) {
+    function displayEnterMessage(message, color) {
         var messagesDiv = document.getElementById("messages");
         var messageElement = document.createElement("div");
         messageElement.style.color = color;
+        messageElement.classList.add("message");
         messageElement.appendChild(document.createTextNode(message));
         messagesDiv.appendChild(messageElement);
+    }
+
+    function displayMessage(message, isOwnMessage) {
+        var messagesDiv = document.getElementById("messages");
+        var messageElement = document.createElement("div");
+        messageElement.classList.add("message");
+        messageElement.classList.add(isOwnMessage ? "own-message" : "other-message");
+        messageElement.appendChild(document.createTextNode(message.content));
+        messagesDiv.appendChild(messageElement);
+    }
+
+    function clearMessages() {
+        var messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML = '';
+    }
+
+    function scrollToBottom() {
+        var messagesDiv = document.getElementById("messages");
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 </script>
 </body>
