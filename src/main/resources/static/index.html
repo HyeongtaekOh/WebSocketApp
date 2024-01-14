@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>그룹채팅</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+    <style>
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            max-width: 50%;
+        }
+        .message-info {
+            font-size: 0.8em;
+            color: gray;
+            margin-bottom: 5px;
+        }
+        .own-message {
+            background-color: #d1e7dd;
+            margin-left: auto;
+            text-align: right;
+        }
+        .other-message {
+            background-color: #f8d7da;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<h2>채팅방에 입장하세요</h2>
+<input type="text" id="user-id" placeholder="사용자 ID를 입력하세요" />
+<button onclick="saveUserId()">저장</button>
+<br>
+<input type="text" id="room-id" placeholder="채팅방 ID를 입력하세요" />
+<button onclick="joinRoom()">접속</button>
+
+<h2>채팅방</h2>
+<div id="messages"></div>
+<input type="text" id="message-input" placeholder="메시지를 입력하세요" />
+<button onclick="sendMessage()">보내기</button>
+
+<script type="text/javascript">
+    var stompClient = null;
+    var roomId = null;
+    var userId = sessionStorage.getItem("userId");
+
+    document.getElementById("user-id").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            saveUserId();
+        }
+    });
+
+    document.getElementById("room-id").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            joinRoom();
+        }
+    });
+
+    document.getElementById("message-input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    function saveUserId() {
+        userId = document.getElementById("user-id").value;
+        if (userId) {
+            sessionStorage.setItem("userId", userId);
+            document.getElementById("room-id").focus();
+        } else {
+            alert("사용자 ID를 입력하세요.");
+        }
+    }
+
+    function joinRoom() {
+        clearMessages();
+        roomId = document.getElementById("room-id").value;
+        if (roomId) {
+            fetch(`/chats/${roomId}`)
+                .then(response => response.json())
+                .then(messages => {
+                    displayEnterMessage(`${roomId}번 채팅방에 입장하였습니다.`, "red");
+                    messages.forEach(message => {
+                        displayMessage(message, message.sender === userId);
+                    });
+                    scrollToBottom();
+                });
+
+            var socket = new SockJS("/chat");
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function (frame) {
+                console.log("Connected: " + frame);
+                stompClient.subscribe("/topic/messages/" + roomId, function (message) {
+                    var chatMessage = JSON.parse(message.body);
+                    displayMessage(chatMessage, chatMessage.sender === userId);
+                    scrollToBottom();
+                });
+                document.getElementById("message-input").focus();
+            });
+        } else {
+            alert("채팅방 ID를 입력하세요.");
+        }
+    }
+
+    function sendMessage() {
+        var messageContent = document.getElementById("message-input").value;
+        var chatMessage = {
+            roomId: roomId,
+            sender: sessionStorage.getItem("userId"),
+            content: messageContent
+        };
+
+        if (stompClient && roomId) {
+            stompClient.send("/app/chat/" + roomId, {}, JSON.stringify(chatMessage));
+            document.getElementById("message-input").value = "";
+        } else {
+            alert("You are not connected to a chat room.");
+        }
+    }
+
+    function displayEnterMessage(message, color) {
+        var messagesDiv = document.getElementById("messages");
+        var messageElement = document.createElement("div");
+        messageElement.style.color = color;
+        messageElement.classList.add("message");
+        messageElement.appendChild(document.createTextNode(message));
+        messagesDiv.appendChild(messageElement);
+    }
+
+    function displayMessage(message, isOwnMessage) {
+        var messagesDiv = document.getElementById("messages");
+        var messageElement = document.createElement("div");
+        messageElement.classList.add("message");
+        messageElement.classList.add(isOwnMessage ? "own-message" : "other-message");
+
+        // 메시지 정보 추가 (발신자와 시간)
+        var messageInfo = document.createElement("div");
+        messageInfo.classList.add("message-info");
+        var senderText = document.createTextNode(message.sender + " ");
+        var createdAtText = document.createTextNode(formatDate(new Date(message.createdAt)));
+        messageInfo.appendChild(senderText);
+        messageInfo.appendChild(createdAtText);
+        messageElement.appendChild(messageInfo);
+
+        // 메시지 내용 추가
+        var messageContent = document.createTextNode(message.content);
+        messageElement.appendChild(messageContent);
+
+        messagesDiv.appendChild(messageElement);
+    }
+
+    function formatDate(date) {
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0시는 12로 표시
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+        return date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " " + strTime;
+    }
+
+    function clearMessages() {
+        var messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML = '';
+    }
+
+    function scrollToBottom() {
+        var messagesDiv = document.getElementById("messages");
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+</script>
+</body>
+</html>
