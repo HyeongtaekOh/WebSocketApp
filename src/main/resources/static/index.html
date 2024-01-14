@@ -142,8 +142,32 @@
         var messageElement = document.createElement("div");
         messageElement.classList.add("message");
         messageElement.classList.add(isOwnMessage ? "own-message" : "other-message");
-        messageElement.appendChild(document.createTextNode(message.content));
+
+        // 메시지 정보 추가 (발신자와 시간)
+        var messageInfo = document.createElement("div");
+        messageInfo.classList.add("message-info");
+        var senderText = document.createTextNode(message.sender + " ");
+        var createdAtText = document.createTextNode(formatDate(new Date(message.createdAt)));
+        messageInfo.appendChild(senderText);
+        messageInfo.appendChild(createdAtText);
+        messageElement.appendChild(messageInfo);
+
+        // 메시지 내용 추가
+        var messageContent = document.createTextNode(message.content);
+        messageElement.appendChild(messageContent);
+
         messagesDiv.appendChild(messageElement);
+    }
+
+    function formatDate(date) {
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0시는 12로 표시
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+        return date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " " + strTime;
     }
 
     function clearMessages() {
