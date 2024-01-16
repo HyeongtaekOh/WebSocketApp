@@ -113,7 +113,24 @@
     }
 
     function sendMessage() {
+
+        if (!userId) {
+            alert("사용자 ID를 입력하세요.");
+            return;
+        }
+
+        if (!roomId) {
+            alert("채팅방에 접속하세요.");
+            return;
+        }
+
         var messageContent = document.getElementById("message-input").value;
+
+        if (!messageContent) {
+            alert("메시지를 입력하세요.");
+            return;
+        }
+
         var chatMessage = {
             roomId: roomId,
             sender: sessionStorage.getItem("userId"),

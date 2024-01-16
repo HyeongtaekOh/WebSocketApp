@@ -1,6 +1,7 @@
 package com.example.websocketapp.service;
 
 import com.example.websocketapp.domain.ChatMessage;
+import com.example.websocketapp.dto.ChatMessageDto;
 import com.example.websocketapp.repository.ChatRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,8 @@ public class ChatService {
 
     private final ChatRepository chatRepository;
 
-    public ChatMessage save(ChatMessage chatMessage) {
+    public ChatMessage save(ChatMessageDto chatMessageDto) {
+        ChatMessage chatMessage = ChatMessage.of(chatMessageDto);
         return chatRepository.save(chatMessage);
     }
 

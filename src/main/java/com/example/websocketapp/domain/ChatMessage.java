@@ -1,5 +1,6 @@
 package com.example.websocketapp.domain;
 
+import com.example.websocketapp.dto.ChatMessageDto;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -21,4 +22,11 @@ public class ChatMessage {
     @CreatedDate
     private Instant createdAt;
 
+    public static ChatMessage of(ChatMessageDto chatMessageDto) {
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setRoomId(chatMessageDto.getRoomId());
+        chatMessage.setSender(chatMessageDto.getSender());
+        chatMessage.setContent(chatMessageDto.getContent());
+        return chatMessage;
+    }
 }
