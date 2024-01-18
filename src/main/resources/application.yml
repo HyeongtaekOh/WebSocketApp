@@ -23,3 +23,9 @@ logging:
         messaging: DEBUG
         web:
           socket: DEBUG
+
+rabbitmq:
+  exchange:
+    name: togeball.chat.exchange
+  queue:
+    name: togeball.chat.queue
