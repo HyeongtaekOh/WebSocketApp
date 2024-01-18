@@ -2,6 +2,7 @@ package com.example.websocketapp.controller;
 
 import com.example.websocketapp.domain.ChatMessage;
 import com.example.websocketapp.dto.ChatMessageDto;
+import com.example.websocketapp.service.AmqpService;
 import com.example.websocketapp.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,17 +23,20 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final AmqpService amqpService;
 
     @MessageMapping("/chat/{roomId}")
-    @SendTo("/topic/messages/{roomId}")
-    public ChatMessage greeting(@DestinationVariable String roomId, @Payload ChatMessageDto messageDto) {
+    public void greeting(@DestinationVariable(value = "roomId") String roomId, @Payload ChatMessageDto messageDto) {
         log.info("roomId: {}, message: {}", roomId, messageDto);
-        return chatService.save(messageDto);
+        String exchange = "chat.exchange";
+        String routingKey = "chat.room." + messageDto.getRoomId();
+        ChatMessage message = chatService.save(messageDto);
+        amqpService.sendMessage(exchange, routingKey, message);
     }
 
     @ResponseBody
     @RequestMapping("/chats/{roomId}")
-    public List<ChatMessage> findAllByRoomId(@PathVariable String roomId) {
+    public List<ChatMessage> findAllByRoomId(@PathVariable(value = "roomId") String roomId) {
         List<ChatMessage> messages = chatService.findAllByRoomId(roomId);
         log.info("messages: {}", messages);
         return messages;

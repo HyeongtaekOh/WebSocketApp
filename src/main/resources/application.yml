@@ -8,4 +8,18 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/chat_test
+      uri: mongodb://localhost:27017/togeball_chat
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ssafy
+    password: ssafy
+
+
+logging:
+  level:
+    org:
+      springframework:
+        messaging: DEBUG
+        web:
+          socket: DEBUG
