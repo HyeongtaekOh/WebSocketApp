@@ -16,10 +16,6 @@ public class RabbitMQListener {
 
     @RabbitListener(queues = "${rabbitmq.queue.name}")
     public void receiveMessage(ChatMessage message) {
-        log.info("message: {}", message);
-        log.info("message.getRoomId(): {}", message.getRoomId());
-        log.info("messagingTemplate.messageChannel: {}", messagingTemplate.getMessageChannel());
-        log.info("messagingTemplate.userPrefix: {}", messagingTemplate.getUserDestinationPrefix());
         messagingTemplate.convertAndSend("/topic/messages/" + message.getRoomId(), message);
     }
 }

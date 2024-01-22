@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Matching Client</title>
+    <style>
+        /* 스타일 추가 */
+        .connected-users {
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .matching-results {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .circle {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 50%;
+            margin: auto;
+        }
+        .box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>Matching Client</h1>
+<input type="text" id="userIdInput" placeholder="Enter User ID">
+<button onclick="saveUserId()">Save</button>
+<button onclick="connectToWebSocket()">Connect</button>
+<div class="connected-users">
+    <h2>매칭 중인 사용자</h2>
+    <div id="connectedUserContainer"></div>
+</div>
+<div class="matching-results">
+    <h2>매칭 결과를 확인하세요!</h2>
+    <div id="matchingContainer"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script>
+    var stompClient = null; // 웹소켓 클라이언트 객체
+
+    // 연결 이벤트 핸들러
+    function onWebSocketConnect(frame) {
+        console.log('Connected: ' + frame);
+        // STOMP 구독 설정
+        stompClient.subscribe('/topic/matching', function (message) {
+            var matchingData = JSON.parse(message.body);
+            if (matchingData.type === 'connectedUser') {
+                displayConnectedUsers(matchingData.content);
+            } else if (matchingData.type === 'matching') {
+                displayMatchingData(matchingData.content);
+            }
+        });
+    }
+
+    // 웹소켓 연결 함수
+    function connectToWebSocket() {
+        if (stompClient !== null) {
+            stompClient.disconnect(); // 기존 연결 해제
+        }
+
+        // User ID를 가져와서 연결 엔드포인트 설정
+        var userId = getUserId();
+        if (userId) {
+            var socket = new SockJS("/matching?Authorization=" + userId);
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, onWebSocketConnect);
+        } else {
+            alert('Please save User ID before connecting to WebSocket.');
+        }
+    }
+
+    // User ID를 세션 스토리지에 저장
+    function saveUserId() {
+        var userId = document.getElementById('userIdInput').value;
+        sessionStorage.setItem('userId', userId);
+    }
+
+    // 저장된 User ID를 가져오는 함수
+    function getUserId() {
+        return sessionStorage.getItem('userId');
+    }
+
+    // 연결된 사용자를 표시하는 함수
+    function displayConnectedUsers(connectedUsers) {
+        var connectedUserContainer = document.getElementById('connectedUserContainer');
+        connectedUserContainer.innerHTML = ''; // 기존 내용을 비우고 새로운 내용으로 갱신
+
+        var ul = document.createElement('div');
+        connectedUsers.forEach(function (user) {
+            var circle = document.createElement('div');
+            circle.className = 'circle'; // 동그라미 스타일 적용
+            circle.textContent = user;
+            ul.appendChild(circle);
+        });
+
+        connectedUserContainer.appendChild(ul);
+    }
+
+    // 매칭 데이터를 시각화하는 함수
+    function displayMatchingData(matchingData) {
+        var matchingContainer = document.getElementById('matchingContainer');
+        matchingContainer.innerHTML = ''; // 기존 내용을 비우고 새로운 내용으로 갱신
+
+        matchingData.forEach(function (element) {
+            var div = document.createElement('div');
+            div.className = 'box'; // 네모난 칸 스타일 적용
+            div.textContent = element;
+            matchingContainer.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
