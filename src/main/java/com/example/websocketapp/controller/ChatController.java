@@ -32,7 +32,7 @@ public class ChatController {
     private final AmqpService amqpService;
 
     @MessageMapping("/chat/{roomId}")
-    public void greeting(@DestinationVariable(value = "roomId") String roomId, @Payload ChatMessageDto messageDto) {
+    public void greeting(@DestinationVariable(value = "roomId") Long roomId, @Payload ChatMessageDto messageDto) {
         log.info("roomId: {}, message: {}", roomId, messageDto);
         String routingKey = queue + "." + messageDto.getRoomId();
         log.info("routingKey: {}", routingKey);
@@ -42,7 +42,7 @@ public class ChatController {
 
     @ResponseBody
     @RequestMapping("/chats/{roomId}")
-    public List<ChatMessage> findAllByRoomId(@PathVariable(value = "roomId") String roomId) {
+    public List<ChatMessage> findAllByRoomId(@PathVariable(value = "roomId") Long roomId) {
         List<ChatMessage> messages = chatService.findAllByRoomId(roomId);
         log.info("messages: {}", messages);
         return messages;

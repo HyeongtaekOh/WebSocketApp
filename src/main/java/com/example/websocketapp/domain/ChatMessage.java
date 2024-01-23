@@ -15,17 +15,18 @@ public class ChatMessage {
     @Id
     private String id;
 
-    private String roomId;
-    private String sender;
+    private Long roomId;
+    private Long senderId;
+    private MessageType type;
     private String content;
 
     @CreatedDate
-    private Instant createdAt;
+    private Instant timestamp;
 
     public static ChatMessage of(ChatMessageDto chatMessageDto) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setRoomId(chatMessageDto.getRoomId());
-        chatMessage.setSender(chatMessageDto.getSender());
+        chatMessage.setSenderId(chatMessageDto.getSenderId());
         chatMessage.setContent(chatMessageDto.getContent());
         return chatMessage;
     }
