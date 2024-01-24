@@ -73,43 +73,57 @@
 
     function saveUserId() {
         userId = document.getElementById("user-id").value;
-        if (userId) {
-            sessionStorage.setItem("userId", userId);
-            document.getElementById("room-id").focus();
-        } else {
+
+        if (!userId) {
             alert("사용자 ID를 입력하세요.");
+            return;
         }
+
+        if (isNaN(userId) || userId < 1 || userId > 1000) {
+            alert("사용자 ID는 1~1000 사이의 숫자만 입력 가능합니다.");
+            return;
+        }
+
+        sessionStorage.setItem("userId", userId);
+        document.getElementById("room-id").focus();
     }
 
     function joinRoom() {
         clearMessages();
         roomId = document.getElementById("room-id").value;
-        if (roomId) {
-            fetch(`/chats/${roomId}`)
-                .then(response => response.json())
-                .then(messages => {
-                    displayEnterMessage(`${roomId}번 채팅방에 입장하였습니다.`, "red");
-                    messages.forEach(message => {
-                        displayMessage(message, message.sender === userId);
-                    });
-                    scrollToBottom();
-                });
 
-            var socket = new SockJS("/chat");
-            stompClient = Stomp.over(socket);
-
-            stompClient.connect({}, function (frame) {
-                console.log("Connected: " + frame);
-                stompClient.subscribe("/topic/messages/" + roomId, function (message) {
-                    var chatMessage = JSON.parse(message.body);
-                    displayMessage(chatMessage, chatMessage.sender === userId);
-                    scrollToBottom();
-                });
-                document.getElementById("message-input").focus();
-            });
-        } else {
+        if (!roomId) {
             alert("채팅방 ID를 입력하세요.");
+            return;
         }
+
+        if (isNaN(roomId) || roomId < 1 || roomId > 1000) {
+            alert("채팅방 ID는 1~1000 사이의 숫자만 입력 가능합니다.");
+            return;
+        }
+
+        fetch(`/chats/${roomId}?userId=${userId}&page=0&size=10`)
+            .then(response => response.json())
+            .then(messages => {
+                displayEnterMessage(`${roomId}번 채팅방에 입장하였습니다.`, "red");
+                messages.forEach(message => {
+                    displayMessage(message, message.sender === userId);
+                });
+                scrollToBottom();
+            });
+
+        var socket = new SockJS("/chat");
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log("Connected: " + frame);
+            stompClient.subscribe("/topic/messages/" + roomId, function (message) {
+                var chatMessage = JSON.parse(message.body);
+                displayMessage(chatMessage, chatMessage.senderId === userId);
+                scrollToBottom();
+            });
+            document.getElementById("message-input").focus();
+        });
     }
 
     function sendMessage() {
@@ -133,7 +147,8 @@
 
         var chatMessage = {
             roomId: roomId,
-            sender: sessionStorage.getItem("userId"),
+            senderId: sessionStorage.getItem("userId"),
+            type: "TALK",
             content: messageContent
         };
 
@@ -163,8 +178,8 @@
         // 메시지 정보 추가 (발신자와 시간)
         var messageInfo = document.createElement("div");
         messageInfo.classList.add("message-info");
-        var senderText = document.createTextNode(message.sender + " ");
-        var createdAtText = document.createTextNode(formatDate(new Date(message.createdAt)));
+        var senderText = document.createTextNode(message.senderId + " ");
+        var createdAtText = document.createTextNode(formatDate(new Date(message.timestamp)));
         messageInfo.appendChild(senderText);
         messageInfo.appendChild(createdAtText);
         messageElement.appendChild(messageInfo);

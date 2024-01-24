@@ -27,6 +27,7 @@ public class ChatMessage {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setRoomId(chatMessageDto.getRoomId());
         chatMessage.setSenderId(chatMessageDto.getSenderId());
+        chatMessage.setType(chatMessageDto.getType());
         chatMessage.setContent(chatMessageDto.getContent());
         return chatMessage;
     }

@@ -17,7 +17,7 @@ public class ScheduledMatching {
     private final MatchingQueueService matchingQueueService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @Scheduled(fixedDelay = 10000)
+//    @Scheduled(fixedDelay = 10000)
     public void matching() {
         List<Object> users = matchingQueueService.getAllUsers();
         List<Object> matchedUsers = users.size() > 2 ? users.subList(0, 2) : users;

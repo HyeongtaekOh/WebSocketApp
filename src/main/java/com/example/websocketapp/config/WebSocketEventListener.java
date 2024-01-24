@@ -1,5 +1,7 @@
 package com.example.websocketapp.config;
 
+import com.example.websocketapp.domain.ChatHistory;
+import com.example.websocketapp.service.ChatHistoryService;
 import com.example.websocketapp.store.MatchingQueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class WebSocketEventListener {
 
+    private final ChatHistoryService chatHistoryService;
     private final MatchingQueueService matchingQueueService;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
@@ -55,6 +58,10 @@ public class WebSocketEventListener {
     @EventListener
     public void handleSubscribeEvent(SessionSubscribeEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        log.info("headerAccessor: {}", headerAccessor);
+        log.info("사용자 {}가 채팅방에 입장하였습니다", headerAccessor.getSessionAttributes().get("userId"));
+        log.info("destination: {}", headerAccessor.getDestination());
+//        chatHistoryService.findFirstTimeByRoomIdAndUserId()
         List<Object> users = matchingQueueService.getAllUsers();
         Map<String, Object> message = new HashMap<>();
         message.put("type", "connectedUser");
