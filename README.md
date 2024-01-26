@@ -14,10 +14,10 @@ docker compose up -d
 ### 브랜치 설명
 
 * 그룹채팅 + 채팅 데이터 MongoDB에 백업
-  ** `no-message-broker`: 메시지 브로커 없이 Spring WebSocket만을 이용해서 구현한 버전
-  ** 'message-broker' : 메시지 브로커를 추가한 버전으로, Spring AMQP 모듈에서 지원하는. RabbitMQ configuration과 Listener 등을 이용해서 `no-message-broker` 버전과 거의 동일하게 동작하게 구현한 버전
+  * `no-message-broker`: 메시지 브로커 없이 Spring WebSocket만을 이용해서 구현한 버전
+  * 'message-broker' : 메시지 브로커를 추가한 버전으로, Spring AMQP 모듈에서 지원하는. RabbitMQ configuration과 Listener 등을 이용해서 `no-message-broker` 버전과 거의 동일하게 동작하게 구현한 버전
 * 그룹채팅 + 채팅 데이터 MongoDB에 백업 + 외부 메시지 브로커 + 사용자가 채팅방에 접속한 시점 이후에 주고받은 메시지만 조회
-  ** `main`, `stomp-broker-relay` : Spring WebSocket STOMP 통신에서 지원하는 형태로. RabbitMQ + STOMP plugin을 연동한 버전
+  * `main`, `stomp-broker-relay` : Spring WebSocket STOMP 통신에서 지원하는 형태로. RabbitMQ + STOMP plugin을 연동한 버전
 
 ### 채팅 클라이언트 테스트
 
