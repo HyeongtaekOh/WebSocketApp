@@ -38,7 +38,6 @@ public class WebSocketEventListener {
         }
         log.info("Received a new web socket connection. User ID: {}", userId);
         matchingQueueService.addUser(userId, userId);
-
     }
 
     @EventListener
@@ -46,6 +45,9 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         // 여기서 클라이언트의 세션 정보나 다른 정보를 가져올 수 있습니다.
         String userId = (String) headerAccessor.getSessionAttributes().get("userId");
+        if (userId == null) {
+            return;
+        }
         log.info("사용자 {}의 연결이 종료되었습니다", userId);
         matchingQueueService.removeUser(userId);
         List<Object> users = matchingQueueService.getAllUsers();
@@ -59,9 +61,12 @@ public class WebSocketEventListener {
     public void handleSubscribeEvent(SessionSubscribeEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         log.info("headerAccessor: {}", headerAccessor);
-        log.info("사용자 {}가 채팅방에 입장하였습니다", headerAccessor.getSessionAttributes().get("userId"));
+        String userId = (String) headerAccessor.getSessionAttributes().get("userId");
+        if (userId == null) {
+            return;
+        }
+        log.info("사용자 {}가 매칭 대기열에 입장하였습니다", userId);
         log.info("destination: {}", headerAccessor.getDestination());
-//        chatHistoryService.findFirstTimeByRoomIdAndUserId()
         List<Object> users = matchingQueueService.getAllUsers();
         Map<String, Object> message = new HashMap<>();
         message.put("type", "connectedUser");
