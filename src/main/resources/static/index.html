@@ -107,7 +107,7 @@
             .then(messages => {
                 displayEnterMessage(`${roomId}번 채팅방에 입장하였습니다.`, "red");
                 messages.forEach(message => {
-                    displayMessage(message, message.sender === userId);
+                    displayMessage(message, message.senderId == userId);
                 });
                 scrollToBottom();
             });
@@ -119,7 +119,7 @@
             console.log("Connected: " + frame);
             stompClient.subscribe("/topic/messages/" + roomId, function (message) {
                 var chatMessage = JSON.parse(message.body);
-                displayMessage(chatMessage, chatMessage.senderId === userId);
+                displayMessage(chatMessage, chatMessage.senderId == userId);
                 scrollToBottom();
             });
             document.getElementById("message-input").focus();
