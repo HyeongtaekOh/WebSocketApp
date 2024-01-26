@@ -112,16 +112,16 @@
                 scrollToBottom();
             });
 
-        var socket = new SockJS("/chat");
+        var socket = new SockJS("/chat?userId=" + userId);
         stompClient = Stomp.over(socket);
 
         stompClient.connect({}, function (frame) {
             console.log("Connected: " + frame);
-            stompClient.subscribe("/topic/messages/" + roomId, function (message) {
+            stompClient.subscribe("/topic/room." + roomId, function (message) {
                 var chatMessage = JSON.parse(message.body);
                 displayMessage(chatMessage, chatMessage.senderId == userId);
                 scrollToBottom();
-            });
+            }, {'auto-delete': true, 'durable': false, 'exclusive': false});
             document.getElementById("message-input").focus();
         });
     }
@@ -153,7 +153,7 @@
         };
 
         if (stompClient && roomId) {
-            stompClient.send("/app/chat/" + roomId, {}, JSON.stringify(chatMessage));
+            stompClient.send("/pub/chat." + roomId, {}, JSON.stringify(chatMessage));
             document.getElementById("message-input").value = "";
         } else {
             alert("You are not connected to a chat room.");

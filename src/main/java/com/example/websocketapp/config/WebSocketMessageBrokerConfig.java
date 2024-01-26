@@ -3,13 +3,11 @@ package com.example.websocketapp.config;
 import com.example.websocketapp.interceptor.AuthHandshakeInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
 @Slf4j
 @Configuration
@@ -27,8 +25,8 @@ public class WebSocketMessageBrokerConfig implements WebSocketMessageBrokerConfi
         registry
                 .addEndpoint("/chat")
                 .setAllowedOriginPatterns("*")
-                .withSockJS()
-                .setInterceptors(new AuthHandshakeInterceptor());
+                .withSockJS();
+//                .setInterceptors(new AuthHandshakeInterceptor());
         // 매칭 서비스에 사용할 웹 소켓 엔드포인트를 "/match"로 설정합니다.
         registry
                 .addEndpoint("/matching")
@@ -40,7 +38,14 @@ public class WebSocketMessageBrokerConfig implements WebSocketMessageBrokerConfi
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry
-                .setApplicationDestinationPrefixes("/app")
-                .enableSimpleBroker("/topic");
+                .setPathMatcher(new AntPathMatcher("."))
+                .setApplicationDestinationPrefixes("/pub")
+                .enableStompBrokerRelay("/topic")
+                .setRelayHost("localhost")
+                .setRelayPort(61613)
+                .setClientLogin("ssafy")
+                .setClientPasscode("ssafy")
+                .setSystemLogin("ssafy")
+                .setSystemPasscode("ssafy");
     }
 }

@@ -31,8 +31,10 @@ dependencies {
     implementation 'org.webjars:stomp-websocket:2.3.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb:3.2.1'
-    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-amqp
     implementation 'org.springframework.boot:spring-boot-starter-amqp:3.2.1'
+
+    implementation 'org.springframework.boot:spring-boot-starter-reactor-netty:3.2.2'
+    runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.100.Final:osx-aarch_64'
 
 }
 

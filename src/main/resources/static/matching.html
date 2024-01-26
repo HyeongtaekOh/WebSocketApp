@@ -71,7 +71,7 @@
         // User ID를 가져와서 연결 엔드포인트 설정
         var userId = getUserId();
         if (userId) {
-            var socket = new SockJS("/matching?Authorization=" + userId);
+            var socket = new SockJS("/matching?userId=" + userId);
             stompClient = Stomp.over(socket);
             stompClient.connect({}, onWebSocketConnect);
         } else {

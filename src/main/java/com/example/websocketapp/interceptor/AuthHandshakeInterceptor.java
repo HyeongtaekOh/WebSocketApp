@@ -18,8 +18,8 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         if (request.getURI().getQuery() == null)
             return true;
 
-         String token = request.getURI().getQuery().split("Authorization=")[1];
-         log.info("token: {}", token);
+         String userId = request.getURI().getQuery().split("userId=")[1];
+         log.info("userId: {}", userId);
         // 또는 쿠키에서 추출
         // String token = request.getHeaders().getFirst("Cookie").split("=")[1];
 
@@ -27,7 +27,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         // 생략
 
         // 인증 정보를 attributes에 저장
-        attributes.put("userId", token);
+        attributes.put("userId", userId);
         log.info("attributes: {}", attributes);
         return true; // false를 반환하면 연결 거부
     }

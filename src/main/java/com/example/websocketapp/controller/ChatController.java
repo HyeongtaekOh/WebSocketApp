@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,23 +27,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatController {
 
-    @Value("${rabbitmq.exchange.name}")
-    private String exchange;
-
-    @Value("${rabbitmq.queue.name}")
-    private String queue;
-
     private final ChatService chatService;
     private final ChatHistoryService chatHistoryService;
-    private final AmqpService amqpService;
+    private final SimpMessageSendingOperations messagingTemplate;
 
-    @MessageMapping("/chat/{roomId}")
+    @MessageMapping("chat.{roomId}")
     public void greeting(@DestinationVariable(value = "roomId") Long roomId, @Payload ChatMessageDto messageDto) {
         log.info("roomId: {}, message: {}", roomId, messageDto);
-        String routingKey = queue + "." + messageDto.getRoomId();
-        log.info("routingKey: {}", routingKey);
         ChatMessage message = chatService.save(messageDto);
-        amqpService.sendMessage(exchange, routingKey, message);
+        log.info("message: {}", message);
+        messagingTemplate.convertAndSend("/topic/room." + roomId, message);
     }
 
     @ResponseBody
