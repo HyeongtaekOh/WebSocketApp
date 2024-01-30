@@ -5,14 +5,19 @@ services:
     image: "rabbitmq:3-management"
     hostname: "my-rabbit"
     environment:
+      RABBIT_ERLANG_COOKIE: "RabbitMQ-My-Cookies"
       RABBITMQ_DEFAULT_USER: "ssafy"
       RABBITMQ_DEFAULT_PASS: "ssafy"
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "61613:61613"
     volumes:
-      - "rabbitmq_data:/var/lib/rabbitmq"
-    restart: always
+      - ./etc/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - rabbit-data:/var/lib/rabbitmq/
+      - rabbit-log:/var/log/rabbitmq/
+#    entrypoint: ["rabbitmq-plugins", "enable", "rabbitmq_stomp"]
+    restart: on-failure
 
   mongodb:
     image: "mongo"
@@ -20,8 +25,9 @@ services:
       - "27017:27017"
     volumes:
       - "mongodb_data:/data/db"
-    restart: always
+    restart: on-failure
 
 volumes:
-  rabbitmq_data:
   mongodb_data:
+  rabbit-data:
+  rabbit-log:

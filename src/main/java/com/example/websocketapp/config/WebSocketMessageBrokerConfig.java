@@ -25,8 +25,8 @@ public class WebSocketMessageBrokerConfig implements WebSocketMessageBrokerConfi
         registry
                 .addEndpoint("/chat")
                 .setAllowedOriginPatterns("*")
-                .withSockJS();
-//                .setInterceptors(new AuthHandshakeInterceptor());
+                .withSockJS()
+                .setInterceptors(new AuthHandshakeInterceptor());
         // 매칭 서비스에 사용할 웹 소켓 엔드포인트를 "/match"로 설정합니다.
         registry
                 .addEndpoint("/matching")
