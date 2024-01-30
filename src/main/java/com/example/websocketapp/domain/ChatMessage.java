@@ -1,6 +1,7 @@
 package com.example.websocketapp.domain;
 
 import com.example.websocketapp.dto.ChatMessageDto;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -9,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 @Data
+@Builder
 @Document(collection = "chatMessage")
 public class ChatMessage {
 
@@ -24,11 +26,11 @@ public class ChatMessage {
     private Instant timestamp;
 
     public static ChatMessage of(ChatMessageDto chatMessageDto) {
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setRoomId(chatMessageDto.getRoomId());
-        chatMessage.setSenderId(chatMessageDto.getSenderId());
-        chatMessage.setType(chatMessageDto.getType());
-        chatMessage.setContent(chatMessageDto.getContent());
-        return chatMessage;
+        return ChatMessage.builder()
+                .roomId(chatMessageDto.getRoomId())
+                .senderId(chatMessageDto.getSenderId())
+                .type(chatMessageDto.getType())
+                .content(chatMessageDto.getContent())
+                .build();
     }
 }

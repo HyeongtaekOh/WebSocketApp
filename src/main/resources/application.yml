@@ -14,7 +14,18 @@ spring:
     port: 5672
     username: ssafy
     password: ssafy
-
+  cloud:
+    aws:
+      credentials:
+        access-key:
+        secret-key:
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: togeball-bucket
+  servlet:
+    multipart:
+      max-file-size: 100MB
 
 logging:
   level:
@@ -23,6 +34,9 @@ logging:
         messaging: DEBUG
         web:
           socket: DEBUG
+    io:
+      awspring:
+        cloud: DEBUG
 
 rabbitmq:
   exchange:

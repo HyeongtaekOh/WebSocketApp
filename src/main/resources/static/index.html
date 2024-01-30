@@ -33,6 +33,16 @@
             background-color: #f8d7da;
             text-align: left;
         }
+        #file-input {
+            display: none;
+        }
+        #file-label {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -47,6 +57,14 @@
 <div id="messages"></div>
 <input type="text" id="message-input" placeholder="메시지를 입력하세요" />
 <button onclick="sendMessage()">보내기</button>
+
+<h2>파일 전송</h2>
+<label for="file-input" id="file-label">파일 선택</label>
+<input type="file" id="file-input" accept="image/*" onchange="updateFileLabel()" />
+<button onclick="uploadFile()">전송</button>
+
+<h2>이미지 표시</h2>
+<div id="imageDisplay"></div>
 
 <script type="text/javascript">
     var stompClient = null;
@@ -185,7 +203,21 @@
         messageElement.appendChild(messageInfo);
 
         // 메시지 내용 추가
-        var messageContent = document.createTextNode(message.content);
+        // var messageContent = document.createTextNode(message.content);
+
+        var messageContent = document.createElement("div");
+
+        // 만약 메시지의 타입이 "IMAGE"면 이미지로 처리
+        if (message.type === "IMAGE") {
+            var img = document.createElement("img");
+            img.src = message.content;
+            img.style.maxWidth = "50%";
+            img.style.height = "auto"; // 이미지의 가로세로비를 유지
+            messageContent.appendChild(img);
+        } else {
+            var textContent = document.createTextNode(message.content);
+            messageContent.appendChild(textContent);
+        }
         messageElement.appendChild(messageContent);
 
         messagesDiv.appendChild(messageElement);
@@ -210,6 +242,63 @@
     function scrollToBottom() {
         var messagesDiv = document.getElementById("messages");
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function updateFileLabel() {
+        var fileInput = document.getElementById("file-input");
+        var fileLabel = document.getElementById("file-label");
+
+        if (fileInput.files[0]) {
+            fileLabel.textContent = fileInput.files[0].name;
+        } else {
+            fileLabel.textContent = "파일 선택";
+        }
+    }
+
+    function uploadFile() {
+        var fileInput = document.getElementById("file-input");
+        var selectedFile = fileInput.files[0];
+
+        if (!selectedFile) {
+            alert("파일을 선택하세요.");
+            return;
+        }
+
+        if (!userId) {
+            alert("사용자 ID를 입력하세요.");
+            return;
+        }
+
+        if (!roomId) {
+            alert("채팅방에 접속하세요.");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("roomId", roomId);
+        formData.append("senderId", sessionStorage.getItem("userId"));
+        formData.append("type", "IMAGE");
+
+        if (stompClient && roomId) {
+            fetch("/api/v1/file/upload", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.text())
+                .then(imageUrl => {
+                    // 이미지 URL을 사용하여 이미지를 표시
+                    var imageDisplay = document.getElementById("imageDisplay");
+                    var img = document.createElement("img");
+                    img.src = imageUrl;
+                    imageDisplay.appendChild(img);
+                })
+                .catch(error => {
+                    console.error("파일 업로드 오류:", error);
+                });
+        } else {
+            alert("You are not connected to a chat room.");
+        }
     }
 </script>
 </body>

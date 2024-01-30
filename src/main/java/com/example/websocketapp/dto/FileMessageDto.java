@@ -1,15 +1,14 @@
 package com.example.websocketapp.dto;
 
 import com.example.websocketapp.domain.MessageType;
-import lombok.Builder;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
-@Builder
-public class ChatMessageDto {
+public class FileMessageDto {
 
+    private MultipartFile file;
     private Long roomId;
     private Long senderId;
     private MessageType type;
-    private String content;
 }
